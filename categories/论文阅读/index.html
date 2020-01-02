@@ -8,20 +8,16 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-<title>Tags - True daemon</title>
+<title>Category: 论文阅读 - True daemon</title>
 
 
     <meta property="og:type" content="website">
 <meta property="og:title" content="True daemon">
-<meta property="og:url" content="http://yoursite.com/tags/index.html">
+<meta property="og:url" content="http://yoursite.com/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/index.html">
 <meta property="og:site_name" content="True daemon">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
 <meta property="article:author" content="Shuhong">
-<meta property="article:tag" content="半虚拟化">
-<meta property="article:tag" content="系统">
-<meta property="article:tag" content="Linux">
-<meta property="article:tag" content="论文">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
@@ -98,7 +94,7 @@
                 <a class="navbar-item"
                 href="/categories">Categories</a>
                 
-                <a class="navbar-item is-active"
+                <a class="navbar-item"
                 href="/tags">Tags</a>
                 
                 <a class="navbar-item"
@@ -130,46 +126,134 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card widget">
+                <div class="column is-8-tablet is-8-desktop is-6-widescreen has-order-2 column-main"><div class="card">
     <div class="card-content">
-        <div class="menu">
-            <h3 class="menu-label">
-                Tags
-            </h3>
-            <div class="field is-grouped is-grouped-multiline">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+        <ul>
+            <li><a href="/categories">Categories</a></li>
+            
+            <li class="is-active"><a href="#" aria-current="page">论文阅读</a></li>
+        </ul>
+        </nav>
+    </div>
+</div>
+
+    
+<div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <time class="level-item has-text-grey" datetime="2020-01-02T12:17:35.000Z">2020-01-02</time>
                 
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/Linux/">
-                        <span class="tag">Linux</span>
-                        <span class="tag is-grey">1</span>
-                    </a>
+                <div class="level-item">
+                <a class="has-link-grey -link" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a>
                 </div>
                 
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/%E5%8D%8A%E8%99%9A%E6%8B%9F%E5%8C%96/">
-                        <span class="tag">半虚拟化</span>
-                        <span class="tag is-grey">1</span>
-                    </a>
-                </div>
                 
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/%E7%B3%BB%E7%BB%9F/">
-                        <span class="tag">系统</span>
-                        <span class="tag is-grey">1</span>
-                    </a>
-                </div>
+                <span class="level-item has-text-grey">
+                    
+                    
+                    18 minutes read (About 2684 words)
+                </span>
                 
-                <div class="control">
-                    <a class="tags has-addons" href="/tags/%E8%AE%BA%E6%96%87/">
-                        <span class="tag">论文</span>
-                        <span class="tag is-grey">1</span>
-                    </a>
-                </div>
                 
             </div>
         </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
+            
+                <a class="has-link-black-ter" href="/2020/01/02/xen%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">Xen and the art of virtualization(SOSP&#39;03)</a>
+            
+        </h1>
+        <div class="content">
+            <h1 id="Xen-and-the-Art-of-Virtualization"><a href="#Xen-and-the-Art-of-Virtualization" class="headerlink" title="Xen and the Art of Virtualization"></a>Xen and the Art of Virtualization</h1><p>xen是一个x86 vmm，允许多个商品级系统共享传统硬件，拥有安全的资源管理，同时几乎不牺牲性能和功能。能够同时支持100台虚拟机，在多个benchmark上优于竞争对手。</p>
+<h2 id="introduction"><a href="#introduction" class="headerlink" title="introduction"></a>introduction</h2><p>成功的机器分割（虚拟化）面临三个挑战：</p>
+<ul>
+<li>vm之间彼此隔离，一个vm的执行不能影响别的vm</li>
+<li>支持多种os，并且支持多种应用运行于其上。</li>
+<li>虚拟化引入的性能损失应该较低。</li>
+</ul>
+<p>xen host商品级os(XenoLinux based on Linux 2.4)，不过会引入源代码的修改。<br>（该论文是sosp03的文章，当时还没有进行完windows和netBSD的移植，现在的vmm不需要再对os进行适配工作了）</p>
+<p>在ISP的服务器上运行虚拟机，对每个虚拟机进行权限控制，用户通过支付不同价格来获取相应资源。（云计算模式的雏形）</p>
+<p>如何在机器上运行多个互不相干的应用？<br>简单做法：不同的用户在自己的文件夹下安装程序运行。<br>问题：</p>
+<ul>
+<li>不同的应用需要各自的复杂配置，系统管理耗时巨大</li>
+<li>资源争夺：调度优先级，磁盘IO，带宽分配，内存分配</li>
+<li>隔离性不佳，很靠默契</li>
+<li>超额订阅，供不应求</li>
+</ul>
+<p>一些方案如Qlinux(QoS enhanced linux kernel)实现了cpu，磁盘和带宽资源的“公平”调度，但是资源利用的统计难以完善，buffer cache和页替换导致的进程间通信。</p>
+<p>xen以操作系统为粒度进行资源分配和隔离。用户可自定义执行环境，对于每个windows用户而言，有独立的注册表。</p>
+<h2 id="xen的方法和综述"><a href="#xen的方法和综述" class="headerlink" title="xen的方法和综述"></a>xen的方法和综述</h2><p>全虚拟化：<br>x86架构对于全虚拟化的支持很不友好：当权限不够的时候，执行一些特权指令会直接失败，而不是产生一个方便的trap。<br>VMware的esx系统能够动态的重写客户机的部分机器码，使得可以在需要vmm干预的地方生成trap，捕捉并执行non_trapping instructions。</p>
+<p>全虚拟化的弊端:<br>实现复杂，牺牲性能。<br>有时候客户机想要看到真实资源而不是虚拟化的抽象资源。如果客户机得到系统时间，就能处理tcp timeout和测量RTT；而提供机器地址则可以使用页着色等技术优化性能。</p>
+<p>xen的半虚拟化技术：</p>
+<ul>
+<li>提供接近但与底层硬件不同的抽象物理层</li>
+<li>需要修改客户机的os，但是不修改abi，因此不影响应用层程序。</li>
+</ul>
+<h3 id="虚拟机接口"><a href="#虚拟机接口" class="headerlink" title="虚拟机接口"></a>虚拟机接口</h3><ol>
+<li>内存管理<br>而客户机可以直接读页表，但是必须批处理更新，并且操作经过xen验证。一个客户机可能被分配不连续的物理页面。</li>
+<li>cpu<br>客户机的权限等级必须比xen更低。如果处理架构只有两个等级，则与用户程序同杨等级。<br>对于异常：拥有handler的描述符表。<br>对于系统调用：快速的系统调用路径，不用陷入xen执行。<br>对于硬件中断：利用事件机制取代。<br>对于时间：客户机可获取物理机时间。</li>
+<li>设备I/O<br>利用环形缓冲区描述符表，进行异步的数据I/O。xen异步通知客户机获取数据。</li>
+</ol>
+<h3 id="移植一个os到xen的开销"><a href="#移植一个os到xen的开销" class="headerlink" title="移植一个os到xen的开销"></a>移植一个os到xen的开销</h3><p>表2<br>windows xp在 architecture independent OS code （体系结构无关的os代码）方面需要大量移植，因为它使用了很多数据结构用来访问页表项。而linux使用了预处理宏来进入页表项，半虚拟化的翻译和调用更加容易。</p>
+<h3 id="控制-amp-管理"><a href="#控制-amp-管理" class="headerlink" title="控制&amp;管理"></a>控制&amp;管理</h3><p>理念：分离mechanism和policy<br>xen负责最基本的控制操作（机制），复杂的应用层管理软件（策略）运行在客户机os自身。<br>图1<br>domain0在xen启动时候创建，用来运行管理软件。control interface用来创建和终止domain，控制调度参数，控制内存分配。还可以创建虚拟块设备和网卡，并且自定义I/O规则(which domain can access, ip filter)。<br>control interface和一些统计信息和domain0的控制平面软件对接，控制平面软件可以方便的管理整个xen。</p>
+<h2 id="具体设计"><a href="#具体设计" class="headerlink" title="具体设计"></a>具体设计</h2><h3 id="控制流的转移：hypercall-amp-events"><a href="#控制流的转移：hypercall-amp-events" class="headerlink" title="控制流的转移：hypercall &amp; events"></a>控制流的转移：hypercall &amp; events</h3><p>hypercall是<strong>自上而下</strong>的同步软件trap，请求hypervisor执行一些权限操作，例如更新页表。<br>events机制是自下而上的非同步信号，用来传递I/O信息等。类似于传统的屏蔽中断，domain也可以设置一个xen可读的软间flag，使得event的处理延迟。</p>
+<h3 id="数据运输：I-O-rings"><a href="#数据运输：I-O-rings" class="headerlink" title="数据运输：I/O rings"></a>数据运输：I/O rings</h3><p>图2<br>一个ring由domain分配。descriptors指向domain分配的buffers。<br>两对pro-con指针相互追赶，这个ring结构可以被多种io复用，例如request代表domain分配的数据包buffer，response代表数据包到达buffer。<br>domain可以设置request(hypercall)和response(event notification)的批处理阈值，来平衡延迟和吞吐量。</p>
+<h3 id="子系统的虚拟化"><a href="#子系统的虚拟化" class="headerlink" title="子系统的虚拟化"></a>子系统的虚拟化</h3><h4 id="cpu调度"><a href="#cpu调度" class="headerlink" title="cpu调度"></a>cpu调度</h4><p>Borrowed Virtual Time (BVT)调度算法，对于延迟敏感。</p>
+<h4 id="timer"><a href="#timer" class="headerlink" title="timer"></a>timer</h4><p>同时维护real time和virtual time（用于guest os之上的应用程序调度）。</p>
+<h4 id="页表"><a href="#页表" class="headerlink" title="页表"></a>页表</h4><p>vmware esx对于x86的处理方式是为每个guest os 提供MMU不可见的virtual page table，然后hypervisor负责trap的处理，以及在它和MMU可见的影子页表之间传递更改。<br>xen：使用MMU注册guest os页表，只暴露给gOS读权限。页表更新则通过hypercall的方式交给xen处理。</p>
+<h4 id="物理内存"><a href="#物理内存" class="headerlink" title="物理内存"></a>物理内存</h4><p>domain的静态内存在初始化时候分配，彼此之间隔离，但是有最大上限reservation。<br>每个domain维护自己的一个translation array来保存物理地址到硬件地址的mapping。在xen中保存一个shared版本。</p>
+<h4 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h4><p>VFR(virtual firewall router)是一个抽象层，几块虚拟网卡逻辑绑定在其上。每个网卡包含出入两个IO ring，同时每个ring和一个(<pattern>，<action>)规则列表关联，控制收发行为，列表由domain0维护。</p>
+<h4 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h4><p>domains通过virtual block devices (VBDs)抽象层访问存储设备。VBD包含一个列表来包含控制访问的信息。<br>gOS的disk调度算法可以对IO请求重排序，满足分级服务的要求。<br>零拷贝DMA发生在磁盘和domain的pinned内存页面上。</p>
+<h3 id="创建新domain"><a href="#创建新domain" class="headerlink" title="创建新domain"></a>创建新domain</h3><p>new domain is mostly delegated to Domain0 which uses its privileged control interfaces (Section 2.3) to access the new domain’s memory and inform Xen of initial register state.</p>
+<h2 id="测试评估"><a href="#测试评估" class="headerlink" title="测试评估"></a>测试评估</h2><p>All the experiments were performed on a Dell 2650 dual processor 2.4GHz Xeon server with 2GB RAM, a Broadcom Tigon 3 Gigabit Ethernet NIC, and a single Hitachi DK32EJ 146GB 10k RPM SCSI disk.</p>
+<p>四号选手UML is a port of Linux to run as a user-space process on a Linux host. </p>
+<p>Linux version 2.4.21 was used throughout, compiled for architecture i686. Redhat 7.2. ext3.</p>
+<h3 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h3><p>A range of server-type workloads。xen和vmware暂时不支持多处理器系统，因此测试物理机开启的是单核配置。</p>
+<p>图<br>PostgreSQL 7.1.3 database，OSDB开源数据库benchmark<br>IR：数据检索<br>TP：事务处理</p>
+<p>dbench program is a ﬁle system benchmark derived from the industry-standard ‘NetBench’.<br>examine the throughput experienced by a single client performing around 90,000 ﬁle system operations. </p>
+<p>SPEC WEB99 is a complex application-level benchmark for evaluating web servers and the systems that host them.<br>测试结果反应OS整体性能，including ﬁle system and network<br>The benchmark is CPU-bound, and a signiﬁcant proportion of the time is spent within the <strong>guest OS kernel, performing network stack processing, ﬁle system operations, and scheduling between the many httpd processes</strong> that Apache needs to handle the offered load. </p>
+<h3 id="操作系统benchmarks"><a href="#操作系统benchmarks" class="headerlink" title="操作系统benchmarks"></a>操作系统benchmarks</h3><p>测试更小的子系统<br>24/37测试上，性能接近单处理器linux kernel，优于SMP kernel。</p>
+<p>表3：<br>fork, exec and sh performance worse，因为需要大量的页表更新，而页表更新需要xen的认证过程。</p>
+<p>表4：<br>不同大小的working set内，进程上下文切换的时间。<br>as it executes a hypercall to change the page table base.</p>
+<p>表5<br>mmap &amp; page fault延迟。</p>
+<p>表6：<br>Both sender and receiver applications were conﬁgured with a socket buffer size of 128kB<br>a median of 9 experiments transferring 400MB</p>
+<p>500-byte MTU for the PPP拨号客户端用的MTU<br>XenoLinux virtual network driver使用了page-ﬂipping technique</p>
+<h3 id="多vm并发场景"><a href="#多vm并发场景" class="headerlink" title="多vm并发场景"></a>多vm并发场景</h3><p>单物理机多vm运行单程序 vs 单物理机多程序</p>
+<p>1，2，4，8，16web99 benchmark进程，运行在SMP linux上。xen则是运行相应数量的vm，每个为单处理器的xenolinux。<br>图4<br>Achieving good SPEC WEB99 scores requires both high throughput and bounded latency.</p>
+<p>if a client request gets stalled due to a badly delayed disk read, then the connection will be classed as non conforming and won’t contribute to the score.</p>
+<p>图5<br>2 instances开始利用上物理机的双核性能。</p>
+<p>Increasing the number of domains further causes some reduction in aggregate throughput which can be attributed to <strong>increased context switching and disk head movement</strong>.</p>
+<p>8diff：给8个vm不同的优先级<br>in the OLTP case, domains given a larger share of resources to not achieve proportionally higher scores: The high level of synchronous disk activity highlights a weakness in our current disk scheduling algorithm causing them to under-perform.</p>
+<h3 id="性能隔离"><a href="#性能隔离" class="headerlink" title="性能隔离"></a>性能隔离</h3><p>4 domains,两个分别运行OSDB和Web99，第三个疯狂创建小文件；第四个疯狂fork，消耗虚拟内存，到达上限之后free page，再重新循环。前两个domain的性能损失只有4% 和 2%。</p>
+<h3 id="可扩展性"><a href="#可扩展性" class="headerlink" title="可扩展性"></a>可扩展性</h3><p>图<br>运行RH 7.2默认的守护进程组，以及ssh+apache server<br>内存上限是64MB</p>
+<h2 id="后续目标讨论"><a href="#后续目标讨论" class="headerlink" title="后续目标讨论"></a>后续目标讨论</h2><ul>
+<li>公开发布产品</li>
+<li>优化块设备的相关算法</li>
+<li>优化VFR层的网络规则，更好地过滤反社会网络行为</li>
+<li>xenoserver的有偿分级服务</li>
+<li>完善xp和netBSD的移植工作</li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>xen是部署网络服务的绝佳平台，如流媒体转码，动态网站镜像，多媒体游戏，智能proxy代理等。对于短时服务来说，快速的部署和方便的配置管理是很重要的。<br>对比原生系统出色的性能损耗和隔离性。<br>后续完成windows和netBSD的移植工作。</p>
+
+        </div>
+        
+        
+        
     </div>
-</div></div>
+</div>
+
+
+
+
+
+
+
+
+</div>
                 
 
 
