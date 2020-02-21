@@ -8,24 +8,22 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 
-<title>Xen and the art of virtualization(SOSP&#39;03) - True daemon</title>
+<title>object-based programming - True daemon</title>
 
 
-    <meta name="description" content="xen是一个x86 半虚拟化vmm，允许多个商品级系统共享传统硬件，拥有安全的资源管理，同时几乎不牺牲性能和功能。能够同时支持100台虚拟机，在多个benchmark上优于竞争对手。">
+    <meta name="description" content="该篇是essential c++第四章：基于对象的编程风格的归纳备忘，顺手添加了一些自己的理解。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Xen and the art of virtualization(SOSP&#39;03)">
-<meta property="og:url" content="http://yoursite.com/2020/01/02/xen%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:title" content="object-based programming">
+<meta property="og:url" content="http://yoursite.com/2020/02/21/object-based%20programming/index.html">
 <meta property="og:site_name" content="True daemon">
-<meta property="og:description" content="xen是一个x86 半虚拟化vmm，允许多个商品级系统共享传统硬件，拥有安全的资源管理，同时几乎不牺牲性能和功能。能够同时支持100台虚拟机，在多个benchmark上优于竞争对手。">
+<meta property="og:description" content="该篇是essential c++第四章：基于对象的编程风格的归纳备忘，顺手添加了一些自己的理解。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://yoursite.com/images/og_image.png">
-<meta property="article:published_time" content="2020-01-02T12:17:35.000Z">
-<meta property="article:modified_time" content="2020-01-02T12:53:18.435Z">
+<meta property="article:published_time" content="2020-02-21T09:17:42.998Z">
+<meta property="article:modified_time" content="2020-02-21T09:36:38.063Z">
 <meta property="article:author" content="Shuhong">
-<meta property="article:tag" content="半虚拟化">
-<meta property="article:tag" content="系统">
-<meta property="article:tag" content="Linux">
-<meta property="article:tag" content="论文">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="面向对象">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://yoursite.com/images/og_image.png">
 
@@ -85,7 +83,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.svg" alt="Xen and the art of virtualization(SOSP&#39;03)" height="28">
+                <img src="/images/logo.svg" alt="object-based programming" height="28">
             
             </a>
         </div>
@@ -145,17 +143,17 @@
         
         <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
             <div class="level-left">
-                <time class="level-item has-text-grey" datetime="2020-01-02T12:17:35.000Z">2020-01-02</time>
+                <time class="level-item has-text-grey" datetime="2020-02-21T09:17:42.998Z">2020-02-21</time>
                 
                 <div class="level-item">
-                <a class="has-link-grey -link" href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">论文阅读</a>
+                <a class="has-link-grey -link" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a>
                 </div>
                 
                 
                 <span class="level-item has-text-grey">
                     
                     
-                    18 minutes read (About 2683 words)
+                    15 minutes read (About 2246 words)
                 </span>
                 
                 
@@ -164,82 +162,106 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal">
             
-                Xen and the art of virtualization(SOSP&#39;03)
+                object-based programming
             
         </h1>
         <div class="content">
-            <p>xen是一个x86 半虚拟化vmm，允许多个商品级系统共享传统硬件，拥有安全的资源管理，同时几乎不牺牲性能和功能。能够同时支持100台虚拟机，在多个benchmark上优于竞争对手。</p>
+            <p>该篇是<strong><em>essential c++</em>第四章：基于对象的编程风格</strong>的归纳备忘，顺手添加了一些自己的理解。</p>
 <a id="more"></a>
 
-<h2 id="introduction"><a href="#introduction" class="headerlink" title="introduction"></a>introduction</h2><p>成功的机器分割（虚拟化）面临三个挑战：</p>
-<ul>
-<li>vm之间彼此隔离，一个vm的执行不能影响别的vm</li>
-<li>支持多种os，并且支持多种应用运行于其上。</li>
-<li>虚拟化引入的性能损失应该较低。</li>
-</ul>
-<p>xen host商品级os(XenoLinux based on Linux 2.4)，不过会引入源代码的修改。<br>（该论文是sosp03的文章，当时还没有进行完windows和netBSD的移植，现在的vmm不需要再对os进行适配工作了）</p>
-<p>在ISP的服务器上运行虚拟机，对每个虚拟机进行权限控制，用户通过支付不同价格来获取相应资源。（云计算模式的雏形）</p>
-<p>如何在机器上运行多个互不相干的应用？<br>简单做法：不同的用户在自己的文件夹下安装程序运行。<br>问题：</p>
-<ul>
-<li>不同的应用需要各自的复杂配置，系统管理耗时巨大</li>
-<li>资源争夺：调度优先级，磁盘IO，带宽分配，内存分配</li>
-<li>隔离性不佳，很靠默契</li>
-<li>超额订阅，供不应求</li>
-</ul>
-<p>一些方案如Qlinux(QoS enhanced linux kernel)实现了cpu，磁盘和带宽资源的“公平”调度，但是资源利用的统计难以完善，buffer cache和页替换导致的进程间通信。</p>
-<p>xen以操作系统为粒度进行资源分配和隔离。用户可自定义执行环境，对于每个windows用户而言，有独立的注册表。</p>
-<h2 id="xen的方法和综述"><a href="#xen的方法和综述" class="headerlink" title="xen的方法和综述"></a>xen的方法和综述</h2><p>全虚拟化：<br>x86架构对于全虚拟化的支持很不友好：当权限不够的时候，执行一些特权指令会直接失败，而不是产生一个方便的trap。<br>VMware的esx系统能够动态的重写客户机的部分机器码，使得可以在需要vmm干预的地方生成trap，捕捉并执行non_trapping instructions。</p>
-<p>全虚拟化的弊端:<br>实现复杂，牺牲性能。<br>有时候客户机想要看到真实资源而不是虚拟化的抽象资源。如果客户机得到系统时间，就能处理tcp timeout和测量RTT；而提供机器地址则可以使用页着色等技术优化性能。</p>
-<p>xen的半虚拟化技术：</p>
-<ul>
-<li>提供接近但与底层硬件不同的抽象物理层</li>
-<li>需要修改客户机的os，但是不修改abi，因此不影响应用层程序。</li>
-</ul>
-<h3 id="虚拟机接口"><a href="#虚拟机接口" class="headerlink" title="虚拟机接口"></a>虚拟机接口</h3><ol>
-<li>内存管理<br>而客户机可以直接读页表，但是必须批处理更新，并且操作经过xen验证。一个客户机可能被分配不连续的物理页面。</li>
-<li>cpu<br>客户机的权限等级必须比xen更低。如果处理架构只有两个等级，则与用户程序同杨等级。<br>对于异常：拥有handler的描述符表。<br>对于系统调用：快速的系统调用路径，不用陷入xen执行。<br>对于硬件中断：利用事件机制取代。<br>对于时间：客户机可获取物理机时间。</li>
-<li>设备I/O<br>利用环形缓冲区描述符表，进行异步的数据I/O。xen异步通知客户机获取数据。</li>
+<h2 id="class-基础"><a href="#class-基础" class="headerlink" title="class 基础"></a>class 基础</h2><ol>
+<li>member function都要在class主体里面声明，可在<code>ClassXX.h</code>同名的<code>.cpp</code>文件中定义。<ol>
+<li>若在class内部定义，自动视作inline函数。non-inline的定义应该放在.cpp文件</li>
+<li>若在外部定义，可以加上inline关键字。需要class scope resolution运算符 (classXX::functionXX)</li>
 </ol>
-<h3 id="移植一个os到xen的开销"><a href="#移植一个os到xen的开销" class="headerlink" title="移植一个os到xen的开销"></a>移植一个os到xen的开销</h3><p>表2<br>windows xp在 architecture independent OS code （体系结构无关的os代码）方面需要大量移植，因为它使用了很多数据结构用来访问页表项。而linux使用了预处理宏来进入页表项，半虚拟化的翻译和调用更加容易。</p>
-<h3 id="控制-amp-管理"><a href="#控制-amp-管理" class="headerlink" title="控制&amp;管理"></a>控制&amp;管理</h3><p>理念：分离mechanism和policy<br>xen负责最基本的控制操作（机制），复杂的应用层管理软件（策略）运行在客户机os自身。<br>图1<br>domain0在xen启动时候创建，用来运行管理软件。control interface用来创建和终止domain，控制调度参数，控制内存分配。还可以创建虚拟块设备和网卡，并且自定义I/O规则(which domain can access, ip filter)。<br>control interface和一些统计信息和domain0的控制平面软件对接，控制平面软件可以方便的管理整个xen。</p>
-<h2 id="具体设计"><a href="#具体设计" class="headerlink" title="具体设计"></a>具体设计</h2><h3 id="控制流的转移：hypercall-amp-events"><a href="#控制流的转移：hypercall-amp-events" class="headerlink" title="控制流的转移：hypercall &amp; events"></a>控制流的转移：hypercall &amp; events</h3><p>hypercall是<strong>自上而下</strong>的同步软件trap，请求hypervisor执行一些权限操作，例如更新页表。<br>events机制是自下而上的非同步信号，用来传递I/O信息等。类似于传统的屏蔽中断，domain也可以设置一个xen可读的软间flag，使得event的处理延迟。</p>
-<h3 id="数据运输：I-O-rings"><a href="#数据运输：I-O-rings" class="headerlink" title="数据运输：I/O rings"></a>数据运输：I/O rings</h3><p>图2<br>一个ring由domain分配。descriptors指向domain分配的buffers。<br>两对pro-con指针相互追赶，这个ring结构可以被多种io复用，例如request代表domain分配的数据包buffer，response代表数据包到达buffer。<br>domain可以设置request(hypercall)和response(event notification)的批处理阈值，来平衡延迟和吞吐量。</p>
-<h3 id="子系统的虚拟化"><a href="#子系统的虚拟化" class="headerlink" title="子系统的虚拟化"></a>子系统的虚拟化</h3><h4 id="cpu调度"><a href="#cpu调度" class="headerlink" title="cpu调度"></a>cpu调度</h4><p>Borrowed Virtual Time (BVT)调度算法，对于延迟敏感。</p>
-<h4 id="timer"><a href="#timer" class="headerlink" title="timer"></a>timer</h4><p>同时维护real time和virtual time（用于guest os之上的应用程序调度）。</p>
-<h4 id="页表"><a href="#页表" class="headerlink" title="页表"></a>页表</h4><p>vmware esx对于x86的处理方式是为每个guest os 提供MMU不可见的virtual page table，然后hypervisor负责trap的处理，以及在它和MMU可见的影子页表之间传递更改。<br>xen：使用MMU注册guest os页表，只暴露给gOS读权限。页表更新则通过hypercall的方式交给xen处理。</p>
-<h4 id="物理内存"><a href="#物理内存" class="headerlink" title="物理内存"></a>物理内存</h4><p>domain的静态内存在初始化时候分配，彼此之间隔离，但是有最大上限reservation。<br>每个domain维护自己的一个translation array来保存物理地址到硬件地址的mapping。在xen中保存一个shared版本。</p>
-<h4 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h4><p>VFR(virtual firewall router)是一个抽象层，几块虚拟网卡逻辑绑定在其上。每个网卡包含出入两个IO ring，同时每个ring和一个(<pattern>，<action>)规则列表关联，控制收发行为，列表由domain0维护。</p>
-<h4 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a>磁盘</h4><p>domains通过virtual block devices (VBDs)抽象层访问存储设备。VBD包含一个列表来包含控制访问的信息。<br>gOS的disk调度算法可以对IO请求重排序，满足分级服务的要求。<br>零拷贝DMA发生在磁盘和domain的pinned内存页面上。</p>
-<h3 id="创建新domain"><a href="#创建新domain" class="headerlink" title="创建新domain"></a>创建新domain</h3><p>new domain is mostly delegated to Domain0 which uses its privileged control interfaces (Section 2.3) to access the new domain’s memory and inform Xen of initial register state.</p>
-<h2 id="测试评估"><a href="#测试评估" class="headerlink" title="测试评估"></a>测试评估</h2><p>All the experiments were performed on a Dell 2650 dual processor 2.4GHz Xeon server with 2GB RAM, a Broadcom Tigon 3 Gigabit Ethernet NIC, and a single Hitachi DK32EJ 146GB 10k RPM SCSI disk.</p>
-<p>四号选手UML is a port of Linux to run as a user-space process on a Linux host. </p>
-<p>Linux version 2.4.21 was used throughout, compiled for architecture i686. Redhat 7.2. ext3.</p>
-<h3 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h3><p>A range of server-type workloads。xen和vmware暂时不支持多处理器系统，因此测试物理机开启的是单核配置。</p>
-<p>图<br>PostgreSQL 7.1.3 database，OSDB开源数据库benchmark<br>IR：数据检索<br>TP：事务处理</p>
-<p>dbench program is a ﬁle system benchmark derived from the industry-standard ‘NetBench’.<br>examine the throughput experienced by a single client performing around 90,000 ﬁle system operations. </p>
-<p>SPEC WEB99 is a complex application-level benchmark for evaluating web servers and the systems that host them.<br>测试结果反应OS整体性能，including ﬁle system and network<br>The benchmark is CPU-bound, and a signiﬁcant proportion of the time is spent within the <strong>guest OS kernel, performing network stack processing, ﬁle system operations, and scheduling between the many httpd processes</strong> that Apache needs to handle the offered load. </p>
-<h3 id="操作系统benchmarks"><a href="#操作系统benchmarks" class="headerlink" title="操作系统benchmarks"></a>操作系统benchmarks</h3><p>测试更小的子系统<br>24/37测试上，性能接近单处理器linux kernel，优于SMP kernel。</p>
-<p>表3：<br>fork, exec and sh performance worse，因为需要大量的页表更新，而页表更新需要xen的认证过程。</p>
-<p>表4：<br>不同大小的working set内，进程上下文切换的时间。<br>as it executes a hypercall to change the page table base.</p>
-<p>表5<br>mmap &amp; page fault延迟。</p>
-<p>表6：<br>Both sender and receiver applications were conﬁgured with a socket buffer size of 128kB<br>a median of 9 experiments transferring 400MB</p>
-<p>500-byte MTU for the PPP拨号客户端用的MTU<br>XenoLinux virtual network driver使用了page-ﬂipping technique</p>
-<h3 id="多vm并发场景"><a href="#多vm并发场景" class="headerlink" title="多vm并发场景"></a>多vm并发场景</h3><p>单物理机多vm运行单程序 vs 单物理机多程序</p>
-<p>1，2，4，8，16web99 benchmark进程，运行在SMP linux上。xen则是运行相应数量的vm，每个为单处理器的xenolinux。<br>图4<br>Achieving good SPEC WEB99 scores requires both high throughput and bounded latency.</p>
-<p>if a client request gets stalled due to a badly delayed disk read, then the connection will be classed as non conforming and won’t contribute to the score.</p>
-<p>图5<br>2 instances开始利用上物理机的双核性能。</p>
-<p>Increasing the number of domains further causes some reduction in aggregate throughput which can be attributed to <strong>increased context switching and disk head movement</strong>.</p>
-<p>8diff：给8个vm不同的优先级<br>in the OLTP case, domains given a larger share of resources to not achieve proportionally higher scores: The high level of synchronous disk activity highlights a weakness in our current disk scheduling algorithm causing them to under-perform.</p>
-<h3 id="性能隔离"><a href="#性能隔离" class="headerlink" title="性能隔离"></a>性能隔离</h3><p>4 domains,两个分别运行OSDB和Web99，第三个疯狂创建小文件；第四个疯狂fork，消耗虚拟内存，到达上限之后free page，再重新循环。前两个domain的性能损失只有4% 和 2%。</p>
-<h3 id="可扩展性"><a href="#可扩展性" class="headerlink" title="可扩展性"></a>可扩展性</h3><p>图<br>运行RH 7.2默认的守护进程组，以及ssh+apache server<br>内存上限是64MB</p>
-<h2 id="后续目标讨论"><a href="#后续目标讨论" class="headerlink" title="后续目标讨论"></a>后续目标讨论</h2><ul>
-<li>公开发布产品</li>
-<li>优化块设备的相关算法</li>
-<li>优化VFR层的网络规则，更好地过滤反社会网络行为</li>
-<li>xenoserver的有偿分级服务</li>
-<li>完善xp和netBSD的移植工作</li>
-</ul>
-<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>xen是部署网络服务的绝佳平台，如流媒体转码，动态网站镜像，多媒体游戏，智能proxy代理等。对于短时服务来说，快速的部署和方便的配置管理是很重要的。<br>对比原生系统出色的性能损耗和隔离性。<br>后续完成windows和netBSD的移植工作。</p>
+</li>
+</ol>
+<h2 id="constructor-amp-destructor"><a href="#constructor-amp-destructor" class="headerlink" title="constructor &amp; destructor"></a>constructor &amp; destructor</h2><p>常用的构造函数，声明给每个参数指定了初始值：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Triangular</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	Triangular (<span class="keyword">int</span> len = <span class="number">1</span>, <span class="keyword">int</span> bp = <span class="number">1</span>);</span><br><span class="line">    	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Triangular::Triangular(<span class="keyword">int</span> len, <span class="keyword">int</span> bp)&#123;</span><br><span class="line">    _length = len &gt; <span class="number">0</span> ? len : <span class="number">1</span>;</span><br><span class="line">    _begin_pos = bp &gt; <span class="number">0</span> ? bp : <span class="number">1</span>;</span><br><span class="line">    _next = _begin_pos - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于声明提供了初始值，相当于支持三种constructor的重载。</p>
+<h3 id="成员初始化列表-member-initialization-list"><a href="#成员初始化列表-member-initialization-list" class="headerlink" title="成员初始化列表 member initialization list"></a>成员初始化列表 member initialization list</h3><p>用于将参数传给member class object，比如Triangular 包含一个string成员。</p>
+<h3 id="destrcutor"><a href="#destrcutor" class="headerlink" title="destrcutor"></a>destrcutor</h3><p>用于释放在object声明周期分配的资源。生命周期结束后编译器暗自调用destructor。</p>
+<p>例如</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Matrix</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>：</span><br><span class="line">    Matrix(<span class="keyword">int</span> row, <span class="keyword">int</span> col)  <span class="comment">//这里用了成员初始化列表,&#123;&#125;内传输参数给double* _pmat</span></span><br><span class="line">        :_row(row), _col(col)&#123;</span><br><span class="line">        _pmat = <span class="keyword">new</span> <span class="keyword">double</span>[row * col];       </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ~Matrix()&#123; <span class="comment">//constructor名字前加~//注意没有参数  </span></span><br><span class="line">        <span class="keyword">delete</span> [] _pmat;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> _row, _col;</span><br><span class="line">    <span class="keyword">double</span>* _pmat;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="memberwise-initialization-成员逐一初始化"><a href="#memberwise-initialization-成员逐一初始化" class="headerlink" title="memberwise initialization 成员逐一初始化"></a>memberwise initialization 成员逐一初始化</h3><p>默认的class object赋值语句会导致成员的逐一复制，但是有时候不适用，例如上述的Matrix class对应的_pmat指针，假若B复制A的话两个指针指向同一个空间，destructor重复操作两次会很危险。</p>
+<p>solution：自定义一个copy constructor，取代默认的copy constructor.</p>
+<h2 id="mutable-amp-const"><a href="#mutable-amp-const" class="headerlink" title="mutable &amp; const"></a>mutable &amp; const</h2><p>member function若标注<strong>const</strong>，编译器得知，member function不会更改class object的内容。 </p>
+<p>每个member  function可以提供const 和 non-const两个版本，调用时候根据调用的对象const与否而重载。<strong>const refercence class 参数不能调用public接口中的non-const部分</strong>（但是多数编译器只会警告）。</p>
+<h4 id="mutable-data-member-可变数据成员"><a href="#mutable-data-member-可变数据成员" class="headerlink" title="mutable data member 可变数据成员"></a>mutable data member 可变数据成员</h4><p>将变量用关键词mutable标志，例如<code>mutable int _next;</code>则说明对变量的改变不会破坏class object的常量性。于是乎那些改变mutable变量的接口可以被声明为const member function，即可以使用const reference class参数。</p>
+<h2 id="this指针"><a href="#this指针" class="headerlink" title="this指针"></a>this指针</h2><p>有时候对象既是复制的目标，也是返回的结果。</p>
+<p>例如<code>tr1.copy(tr2);</code></p>
+<p>this指针指向member function中的调用者对象，上例中指向tr1。</p>
+<p>编译器将<code>Triangular&amp; Triangular::copy(Triangular &amp;tr2)</code>转化为<code>Triangular&amp; Triangular::copy(Triangular *tr1, Triangular &amp;tr2)</code></p>
+<p>于是 <code>tr1.copy(tr2)</code>-&gt;<code>copy(&amp;tr1, tr2)</code></p>
+<h2 id="static-class-members"><a href="#static-class-members" class="headerlink" title="static class members"></a>static class members</h2><p>对于一个class，static class member只有唯一一份实体，且需要定义。定义时候用上类scope运算符。</p>
+<p>static const int _member 可以在声明时候给定初值。</p>
+<h3 id="static-member-function"><a href="#static-member-function" class="headerlink" title="static member function"></a>static member function</h3><p>一般情况下，member function需要通过具体对象来调用。该对象被绑定到member function内使用的this指针，然后member function才能够访问储存在具体对象内的non-static data member。</p>
+<p><strong>只有对于没有访问non-static data member 的成员函数，才能定义为static member function</strong>，使用时候不需要指定具体对象，因为它和任何一个具体对象都没有瓜葛。但是需要通过class scope调用，加以区分，如<code>Triangular::is_elem(8);</code></p>
+<h2 id="Iterator-class"><a href="#Iterator-class" class="headerlink" title="Iterator class"></a>Iterator class</h2><p>想要为一个iterator class定义运算符，需要我们类似member function那样定义。</p>
+<p>例如</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Triangular_iterator</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    Triangular_iterator(<span class="keyword">int</span> index): _index(index<span class="number">-1</span>)&#123;&#125; <span class="comment">//构造函数，使用成员初始化列表</span></span><br><span class="line">	<span class="keyword">bool</span> <span class="keyword">operator</span>== (<span class="keyword">const</span> Triangular_iterator&amp;) <span class="keyword">const</span>; <span class="comment">//关键字operator指定是运算符定义</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">check_integrity</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">    <span class="keyword">int</span> _index;<span class="comment">//维护一个索引，用来索引Triangular class中的那个静态储存容器</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">inline</span> <span class="keyword">bool</span> Triangular_iterator::</span><br><span class="line"><span class="keyword">operator</span>== (<span class="keyword">const</span> Triangular_iterator &amp;rhs) <span class="keyword">const</span>&#123;</span><br><span class="line">	<span class="keyword">return</span> _index == rhs._index;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Triangula把特殊的访问权限赋予了Triangular_iterator的member function(使用了friend机制)。</p>
+<p>关于运算符的<strong>定义</strong>：可以写成上述member function风格，也可以是non-member function的样式，但是后者不能访问non-public member。</p>
+<p>关于<strong>++</strong>运算符，我们定义了前置(++i)和后置(i++)两个版本，因为重载规则要求函数的参数列表唯一性，所以后置版本使用一个小trick，定义中加上了参数int，由编译器负责自动产生值为0的int参数，用户无需操心。</p>
+<p>前置返回类型是对象的引用，例如<code>Triangular &amp;</code>， <code>return *this</code>。而后置版返回的是临时对象，注意，<strong>生命周期</strong>在使用运算符语句结束时，释放内存空间。后置版本(i++)返回的是临时变量，也解释了为何不能作为赋值语句的左值。</p>
+<h2 id="friend机制"><a href="#friend机制" class="headerlink" title="friend机制"></a>friend机制</h2><p>任何函数或者其他class的member function，都可以访问一个class的<strong>private member</strong>，前提是class在定义中的<strong>任意位置</strong>，加上一段声明，成为他的<strong>friend</strong>，例如</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Triangular</span>&#123;</span></span><br><span class="line">	<span class="keyword">friend</span> <span class="keyword">int</span> <span class="keyword">operator</span>* (<span class="keyword">const</span> Triangular_iterator &amp;rhs); <span class="comment">//加上friend关键字</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也可以建立class 之间的友谊：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Triangular</span>&#123;</span></span><br><span class="line">    <span class="keyword">friend</span> <span class="class"><span class="keyword">class</span> <span class="title">Triangular_iterator</span>;</span> <span class="comment">//所有member function自动成为Triangular的friend</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，friend不是必须建立的。class A可以定义public接口返回需要的private member，就不需要建立友谊了。</p>
+<h2 id="copy-assignment-operator"><a href="#copy-assignment-operator" class="headerlink" title="copy assignment operator"></a>copy assignment operator</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Triangular tri1(8), tri2(8,9);</span><br><span class="line">tri1 = tri2;</span><br></pre></td></tr></table></figure>
+
+<p>这里将一个类对象赋值给另一个，默认情况下使用default memberwise copy逐一复制。但是这种方法偶尔不适用，在上文讨论过。我们需要构造copy constructor 或者 copy assignment constructor。后者可以替代默认的赋值行为，使用类对象赋值copy的源代码也可以沿用。</p>
+<h2 id="重载iostream运算符"><a href="#重载iostream运算符" class="headerlink" title="重载iostream运算符"></a>重载iostream运算符</h2><p>想要通过iostream运算符 输入 / 输出 类对象的内容，就需要对 &gt;&gt; / &lt;&lt;  运算符重载。</p>
+<p>例如</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ostream&amp; <span class="keyword">operator</span>&lt;&lt; (ostream &amp;os, <span class="keyword">const</span> Triangular &amp;rhs)&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">return</span> os; <span class="comment">//返回os，是为了串接多个&lt;&lt;，品一下：cout &lt;&lt; tri1 &lt;&lt; endl;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>不能把&lt;&lt;作为class的member function定义</strong>，因为member function都要求左操作数隶属于同一个类的对象。</p>
+<p>倘若这样定义，就会变成 <code>tri1 &lt;&lt; cout &lt;&lt; endl;</code>。迷惑行为，且串接行为会失败。</p>
+<h2 id="pointer-to-member-function"><a href="#pointer-to-member-function" class="headerlink" title="pointer to member function"></a>pointer to member function</h2><p>如下是一个class的定义，他是一个通用的数列class：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">num_sequence</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(num_sequence::*PtrType)</span><span class="params">(<span class="keyword">int</span>)</span></span>;<span class="comment">//声明PtrType是一个指针，指向num_sequence的member function，返回void，参数是int。</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">set_sequence</span><span class="params">(<span class="keyword">int</span>)</span></span>; <span class="comment">//设置_elem和_pmf.</span></span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">elem</span><span class="params">(<span class="keyword">int</span>)</span></span>; <span class="comment">//根据pos返回序列某位置的数值。</span></span><br><span class="line">   	</span><br><span class="line">    <span class="comment">//这两个static成员函数充当访问private + static data member的接口。</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">num_of_sequences</span><span class="params">()</span></span>&#123; <span class="keyword">return</span> num_sequence::num_seq&#125;; <span class="comment">//返回目前支持的序列种类个数(7)</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ns_type</span><span class="params">(<span class="keyword">int</span>)</span></span>&#123;...&#125;; <span class="comment">//根据序号，返回不同序列对应的函数地址func_tbl。用于set_sequence()。</span></span><br><span class="line">     </span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">fibonacci</span><span class="params">(<span class="keyword">int</span>)</span></span>;</span><br><span class="line">    <span class="comment">//序列生成函数共6个，略 </span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;* _elem; <span class="comment">//指向当前序列对应的容器</span></span><br><span class="line">    PtrType _pmf; <span class="comment">//Pointer to Member Function</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">int</span> num_seq = <span class="number">7</span>;</span><br><span class="line">    <span class="keyword">static</span> PtrType func_tbl[num_seq]; <span class="comment">//存放6个序列生成函数的地址</span></span><br><span class="line">    <span class="keyword">static</span> <span class="built_in">vector</span>&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; &gt;seq; <span class="comment">//seq存放六个序列。这里注意int&gt;后的空格。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后要对static data member进行定义。</p>
+<p><strong>pointer to member function和pointer to function的区别</strong>就是，前者需要通过特定的class对象调用。这个对象就是这个member function内的this指针指向的对象。</p>
+<p>member_function elem()的实现如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> num_sequence::elem(<span class="keyword">int</span> pos)&#123;</span><br><span class="line">    <span class="keyword">if</span>(! check_integrity(pos)) <span class="comment">//检查输入pos(位置)的合理性</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span>(pos &gt; _elem-&gt;<span class="built_in">size</span>()) <span class="comment">//若当前储存的元素未包含这个位置，就调用生成函数产生新元素</span></span><br><span class="line">        (<span class="keyword">this</span> -&gt; *_pmf)(pos);  <span class="comment">//调用对象的生成函数</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> (*_elem)[pos - <span class="number">1</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="定义一个class的大致step"><a href="#定义一个class的大致step" class="headerlink" title="定义一个class的大致step"></a>定义一个class的大致step</h2><p>（基于本章总结，可能不完善）</p>
+<ol>
+<li>是否定义friend函数/class？（friend声明不受权限影响，可定义在class开头）</li>
+<li>分析问题。找全需要的data member <strong>in private</strong>。<ol>
+<li>可能需要全局的static变量。</li>
+<li>可能需要static function来操作static变量。</li>
+</ol>
+</li>
+<li>定义constructor和destructor。<ol>
+<li>可能需要定义copy constructor 和 copy assignment constructor（成员的逐一初始化不适用的时候）。</li>
+<li>constructor的内部（当然也包括别的member function），可能含有函数内的局部static变量。比如用来区分构造不同的class实例对象。</li>
+</ol>
+</li>
+<li>考虑输入输出<ol>
+<li>iostream重载问题（不能定义为member function）。一般也不给予friend权限，通过4.2/3的接口实现。</li>
+<li>读取static data member的接口</li>
+<li>写入static data member的接口</li>
+</ol>
+</li>
+<li>其他计算/功能接口</li>
+</ol>
+<p>文末附上自家猫猫看收集照片一张</p>
+<p><img src="http://shuhong.ink/blog/20200221/gTvbBLLiqcHI.jpg?imageslim" alt="mark"></p>
 
         </div>
         
@@ -247,7 +269,7 @@
             <div class="level-start">
                 <div class="level-item">
                     <span class="is-size-6 has-text-grey has-mr-7">#</span>
-                    <a class="has-link-grey -link" href="/tags/Linux/" rel="tag">Linux</a>, <a class="has-link-grey -link" href="/tags/%E5%8D%8A%E8%99%9A%E6%8B%9F%E5%8C%96/" rel="tag">半虚拟化</a>, <a class="has-link-grey -link" href="/tags/%E7%B3%BB%E7%BB%9F/" rel="tag">系统</a>, <a class="has-link-grey -link" href="/tags/%E8%AE%BA%E6%96%87/" rel="tag">论文</a>
+                    <a class="has-link-grey -link" href="/tags/c/" rel="tag">c++</a>, <a class="has-link-grey -link" href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" rel="tag">面向对象</a>
                 </div>
             </div>
         </div>
@@ -293,13 +315,13 @@
 <div class="card card-transparent">
     <div class="level post-navigation is-flex-wrap is-mobile">
         
-        <div class="level-start">
-            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/02/21/object-based%20programming/">
-                <i class="level-item fas fa-chevron-left"></i>
-                <span class="level-item">object-based programming</span>
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/01/02/xen%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+                <span class="level-item">Xen and the art of virtualization(SOSP&#39;03)</span>
+                <i class="level-item fas fa-chevron-right"></i>
             </a>
         </div>
-        
         
     </div>
 </div>
@@ -418,101 +440,69 @@
                     Catalogue
                 </h3>
                 <ul class="menu-list"><li>
-        <a class="is-flex" href="#introduction">
+        <a class="is-flex" href="#class-基础">
         <span class="has-mr-6">1</span>
-        <span>introduction</span>
+        <span>class 基础</span>
         </a></li><li>
-        <a class="is-flex" href="#xen的方法和综述">
+        <a class="is-flex" href="#constructor-amp-destructor">
         <span class="has-mr-6">2</span>
-        <span>xen的方法和综述</span>
+        <span>constructor & destructor</span>
         </a><ul class="menu-list"><li>
-        <a class="is-flex" href="#虚拟机接口">
+        <a class="is-flex" href="#成员初始化列表-member-initialization-list">
         <span class="has-mr-6">2.1</span>
-        <span>虚拟机接口</span>
+        <span>成员初始化列表 member initialization list</span>
         </a></li><li>
-        <a class="is-flex" href="#移植一个os到xen的开销">
+        <a class="is-flex" href="#destrcutor">
         <span class="has-mr-6">2.2</span>
-        <span>移植一个os到xen的开销</span>
+        <span>destrcutor</span>
         </a></li><li>
-        <a class="is-flex" href="#控制-amp-管理">
+        <a class="is-flex" href="#memberwise-initialization-成员逐一初始化">
         <span class="has-mr-6">2.3</span>
-        <span>控制&管理</span>
+        <span>memberwise initialization 成员逐一初始化</span>
         </a></li></ul></li><li>
-        <a class="is-flex" href="#具体设计">
+        <a class="is-flex" href="#mutable-amp-const">
         <span class="has-mr-6">3</span>
-        <span>具体设计</span>
-        </a><ul class="menu-list"><li>
-        <a class="is-flex" href="#控制流的转移：hypercall-amp-events">
-        <span class="has-mr-6">3.1</span>
-        <span>控制流的转移：hypercall & events</span>
-        </a></li><li>
-        <a class="is-flex" href="#数据运输：I-O-rings">
-        <span class="has-mr-6">3.2</span>
-        <span>数据运输：I/O rings</span>
-        </a></li><li>
-        <a class="is-flex" href="#子系统的虚拟化">
-        <span class="has-mr-6">3.3</span>
-        <span>子系统的虚拟化</span>
-        </a><ul class="menu-list"><li>
-        <a class="is-flex" href="#cpu调度">
-        <span class="has-mr-6">3.3.1</span>
-        <span>cpu调度</span>
-        </a></li><li>
-        <a class="is-flex" href="#timer">
-        <span class="has-mr-6">3.3.2</span>
-        <span>timer</span>
-        </a></li><li>
-        <a class="is-flex" href="#页表">
-        <span class="has-mr-6">3.3.3</span>
-        <span>页表</span>
-        </a></li><li>
-        <a class="is-flex" href="#物理内存">
-        <span class="has-mr-6">3.3.4</span>
-        <span>物理内存</span>
-        </a></li><li>
-        <a class="is-flex" href="#网络">
-        <span class="has-mr-6">3.3.5</span>
-        <span>网络</span>
-        </a></li><li>
-        <a class="is-flex" href="#磁盘">
-        <span class="has-mr-6">3.3.6</span>
-        <span>磁盘</span>
-        </a></li></ul></li><li>
-        <a class="is-flex" href="#创建新domain">
-        <span class="has-mr-6">3.4</span>
-        <span>创建新domain</span>
-        </a></li></ul></li><li>
-        <a class="is-flex" href="#测试评估">
+        <span>mutable & const</span>
+        </a><ul class="menu-list"><ul class="menu-list"><li>
+        <a class="is-flex" href="#mutable-data-member-可变数据成员">
+        <span class="has-mr-6">3.1.1</span>
+        <span>mutable data member 可变数据成员</span>
+        </a></li></ul></ul></li><li>
+        <a class="is-flex" href="#this指针">
         <span class="has-mr-6">4</span>
-        <span>测试评估</span>
-        </a><ul class="menu-list"><li>
-        <a class="is-flex" href="#性能对比">
-        <span class="has-mr-6">4.1</span>
-        <span>性能对比</span>
+        <span>this指针</span>
         </a></li><li>
-        <a class="is-flex" href="#操作系统benchmarks">
-        <span class="has-mr-6">4.2</span>
-        <span>操作系统benchmarks</span>
-        </a></li><li>
-        <a class="is-flex" href="#多vm并发场景">
-        <span class="has-mr-6">4.3</span>
-        <span>多vm并发场景</span>
-        </a></li><li>
-        <a class="is-flex" href="#性能隔离">
-        <span class="has-mr-6">4.4</span>
-        <span>性能隔离</span>
-        </a></li><li>
-        <a class="is-flex" href="#可扩展性">
-        <span class="has-mr-6">4.5</span>
-        <span>可扩展性</span>
-        </a></li></ul></li><li>
-        <a class="is-flex" href="#后续目标讨论">
+        <a class="is-flex" href="#static-class-members">
         <span class="has-mr-6">5</span>
-        <span>后续目标讨论</span>
-        </a></li><li>
-        <a class="is-flex" href="#结论">
+        <span>static class members</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#static-member-function">
+        <span class="has-mr-6">5.1</span>
+        <span>static member function</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#Iterator-class">
         <span class="has-mr-6">6</span>
-        <span>结论</span>
+        <span>Iterator class</span>
+        </a></li><li>
+        <a class="is-flex" href="#friend机制">
+        <span class="has-mr-6">7</span>
+        <span>friend机制</span>
+        </a></li><li>
+        <a class="is-flex" href="#copy-assignment-operator">
+        <span class="has-mr-6">8</span>
+        <span>copy assignment operator</span>
+        </a></li><li>
+        <a class="is-flex" href="#重载iostream运算符">
+        <span class="has-mr-6">9</span>
+        <span>重载iostream运算符</span>
+        </a></li><li>
+        <a class="is-flex" href="#pointer-to-member-function">
+        <span class="has-mr-6">10</span>
+        <span>pointer to member function</span>
+        </a></li><li>
+        <a class="is-flex" href="#定义一个class的大致step">
+        <span class="has-mr-6">11</span>
+        <span>定义一个class的大致step</span>
         </a></li></ul>
             </div>
         </div>
@@ -894,7 +884,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.svg" alt="Xen and the art of virtualization(SOSP&#39;03)" height="28">
+                    <img src="/images/logo.svg" alt="object-based programming" height="28">
                 
                 </a>
                 <p class="is-size-7">
